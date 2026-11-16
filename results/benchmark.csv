@@ -1,8 +1,8 @@
 donors,median_ms,runs,queries_per_run,scenario
-100,0.0170,15,50,"AB+ recipient; 4 donors; distance rank; 1 donor/location; first 12 candidates share North"
-250,0.0398,15,50,"AB+ recipient; 4 donors; distance rank; 1 donor/location; first 12 candidates share North"
-500,0.0771,15,50,"AB+ recipient; 4 donors; distance rank; 1 donor/location; first 12 candidates share North"
-1000,0.1536,15,50,"AB+ recipient; 4 donors; distance rank; 1 donor/location; first 12 candidates share North"
-1500,0.2491,15,50,"AB+ recipient; 4 donors; distance rank; 1 donor/location; first 12 candidates share North"
-2500,0.4288,15,50,"AB+ recipient; 4 donors; distance rank; 1 donor/location; first 12 candidates share North"
+100,0.0339,15,50,"AB+ recipient; 4 donors; Dijkstra from Rohini; 1 donor/location; first 12 candidates share Rohini"
+250,0.0945,15,50,"AB+ recipient; 4 donors; Dijkstra from Rohini; 1 donor/location; first 12 candidates share Rohini"
+500,0.2168,15,50,"AB+ recipient; 4 donors; Dijkstra from Rohini; 1 donor/location; first 12 candidates share Rohini"
+1000,0.5015,15,50,"AB+ recipient; 4 donors; Dijkstra from Rohini; 1 donor/location; first 12 candidates share Rohini"
+1500,0.7982,15,50,"AB+ recipient; 4 donors; Dijkstra from Rohini; 1 donor/location; first 12 candidates share Rohini"
+2500,1.4226,15,50,"AB+ recipient; 4 donors; Dijkstra from Rohini; 1 donor/location; first 12 candidates share Rohini"
 

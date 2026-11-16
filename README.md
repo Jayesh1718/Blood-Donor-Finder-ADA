@@ -15,15 +15,15 @@ No package installation, account, server database, or network connection is requ
 - Add, edit, remove, filter, and update availability for donor records; donor IDs must be unique.
 - Filter by red-cell compatibility and availability.
 - Store a Delhi area/locality and optional six-digit PIN for each donor; enter a supported request area or PIN.
-- Automatically run Dijkstra from the requested locality over a weighted Delhi demo graph. Rank compatible available donors by shortest route distance, then priority and donor ID.
-- Show each selected donor’s calculated demo route distance. Edge weights are illustrative teaching values, not live road distances or navigation guidance.
+- Automatically run Dijkstra from the requested locality over a weighted Delhi demo graph. Rank compatible available donors by shortest route distance, then registration order and donor ID.
+- Show each selected donor’s route and distance. Edge weights are illustrative teaching values, not live road distances or navigation guidance.
 - Try the first `k` ranked candidates greedily. When the one-donor-per-location constraint is violated, backtracking searches ranked alternatives.
 - Export the directory as CSV; reset to the bundled fictional sample data.
 - Display the selected donor set, selection strategy, search states explored, and elapsed time.
 
 ## Inputs and outputs
 
-Inputs: donor ID, name, optional contact, blood group, Delhi area/locality, optional PIN, priority, availability, requested area/PIN, recipient blood group, donor count, and location-diversity constraint.
+Inputs: donor ID, name, optional contact, blood group, Delhi area/locality, optional PIN, availability, requested area/PIN, recipient blood group, donor count, and location-diversity constraint. Registration order is assigned automatically and retained when a record is edited.
 
 Outputs: compatible available donors, ranked candidate list, selected donors, selection strategy, search states explored, and elapsed time.
 

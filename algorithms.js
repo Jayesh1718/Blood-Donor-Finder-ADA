@@ -32,6 +32,12 @@ export function dijkstra(startNode, graph=DELHI_GRAPH) {
   }
   return{distances,previous};
 }
+export function reconstructRoute(startNode, endNode, previous) {
+  if(startNode===endNode)return[startNode];
+  const path=[];let node=endNode;
+  while(node!==undefined){path.push(node);if(node===startNode)return path.reverse();node=previous.get(node);}
+  return[];
+}
 
 export function isCompatible(donorGroup, recipientGroup) { return Boolean(COMPATIBLE[recipientGroup]?.includes(donorGroup)); }
 function mergeSort(items, compare) {
@@ -62,8 +68,8 @@ export function rankDonors(donors, key = 'distance', requestedPin = '', requeste
 export function findMatches(donors, recipientGroup, count, key = 'distance', diversify = true, requestedPin = '', requestedArea = '') {
   let eligible=donors.filter(d=>d.available&&isCompatible(d.bloodGroup,recipientGroup));
   if(key==='dijkstra'){
-    const start=resolveDelhiNode(requestedArea,requestedPin),routeMap=start?dijkstra(start).distances:new Map();
-    eligible=eligible.map(d=>{const node=resolveDelhiNode(d.location,d.pincode);return{...d,routeDistanceKm:node?routeMap.get(node)??Infinity:Infinity};});
+    const start=resolveDelhiNode(requestedArea,requestedPin),routeResult=start?dijkstra(start):{distances:new Map(),previous:new Map()};
+    eligible=eligible.map(d=>{const node=resolveDelhiNode(d.location,d.pincode);return{...d,routeDistanceKm:node?routeResult.distances.get(node)??Infinity:Infinity,routePath:node?reconstructRoute(start,node,routeResult.previous):[]};});
   }
   const candidates=rankDonors(eligible,key,requestedPin,requestedArea);
   const greedy=candidates.slice(0,count);

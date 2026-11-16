@@ -5,6 +5,34 @@ export const COMPATIBLE = {
   'B-': ['O-', 'B-'], 'B+': ['O-', 'O+', 'B-', 'B+'], 'AB-': ['O-', 'A-', 'B-', 'AB-'], 'AB+': GROUPS,
 };
 
+// Small illustrative Delhi network for the ADA demonstration; edge weights are demo km.
+export const DELHI_GRAPH = new Map([
+  ['Rohini', [['Connaught Place',16],['Laxmi Nagar',21]]],
+  ['Connaught Place', [['Rohini',16],['Laxmi Nagar',8.5],['Lajpat Nagar',9.5],['Dwarka Sector 6',22]]],
+  ['Laxmi Nagar', [['Rohini',21],['Connaught Place',8.5],['Lajpat Nagar',13.5]]],
+  ['Lajpat Nagar', [['Connaught Place',9.5],['Laxmi Nagar',13.5],['Dwarka Sector 6',19.5]]],
+  ['Dwarka Sector 6', [['Connaught Place',22],['Lajpat Nagar',19.5]]],
+]);
+const PIN_NODE={'110085':'Rohini','110001':'Connaught Place','110092':'Laxmi Nagar','110024':'Lajpat Nagar','110075':'Dwarka Sector 6'};
+const AREA_NODE=Object.fromEntries([...DELHI_GRAPH.keys()].map(area=>[area.toLowerCase(),area]));
+
+class MinHeap {
+  items=[];
+  push(item){this.items.push(item);let i=this.items.length-1;while(i>0){const p=(i-1)>>1;if(this.items[p][0]<=item[0])break;this.items[i]=this.items[p];i=p;}this.items[i]=item;}
+  pop(){if(!this.items.length)return null;const root=this.items[0],last=this.items.pop();if(this.items.length){let i=0;while(true){let c=2*i+1;if(c>=this.items.length)break;if(c+1<this.items.length&&this.items[c+1][0]<this.items[c][0])c++;if(this.items[c][0]>=last[0])break;this.items[i]=this.items[c];i=c;}this.items[i]=last;}return root;}
+  get size(){return this.items.length;}
+}
+export function resolveDelhiNode(area='',pincode='') { return PIN_NODE[pincode]||AREA_NODE[String(area).trim().toLowerCase()]||null; }
+export function dijkstra(startNode, graph=DELHI_GRAPH) {
+  const distances=new Map([...graph.keys()].map(node=>[node,Infinity]));
+  const previous=new Map();if(!graph.has(startNode))return{distances,previous};
+  distances.set(startNode,0);const heap=new MinHeap();heap.push([0,startNode]);
+  while(heap.size){const [distance,node]=heap.pop();if(distance!==distances.get(node))continue;
+    for(const [neighbor,weight] of graph.get(node)){const candidate=distance+weight;if(candidate<distances.get(neighbor)){distances.set(neighbor,candidate);previous.set(neighbor,node);heap.push([candidate,neighbor]);}}
+  }
+  return{distances,previous};
+}
+
 export function isCompatible(donorGroup, recipientGroup) { return Boolean(COMPATIBLE[recipientGroup]?.includes(donorGroup)); }
 function mergeSort(items, compare) {
   if(items.length<=1)return items;
@@ -16,6 +44,10 @@ export function rankDonors(donors, key = 'distance', requestedPin = '', requeste
   const value = key === 'id' ? d => d.id.toLowerCase() : key === 'priority' ? d => Number(d.priority) : d => Number(d.distance);
   const norm=s=>String(s||'').trim().toLowerCase();
   const compare=(a,b)=>{
+    if(key==='dijkstra'){
+      const av=Number(a.routeDistanceKm??Infinity),bv=Number(b.routeDistanceKm??Infinity);
+      return av-bv||Number(a.priority)-Number(b.priority)||a.id.localeCompare(b.id);
+    }
     if(key==='location'){
       const pinA=requestedPin&&a.pincode===requestedPin?0:1,pinB=requestedPin&&b.pincode===requestedPin?0:1;
       if(pinA!==pinB)return pinA-pinB;
@@ -28,7 +60,12 @@ export function rankDonors(donors, key = 'distance', requestedPin = '', requeste
   return mergeSort([...donors],compare);
 }
 export function findMatches(donors, recipientGroup, count, key = 'distance', diversify = true, requestedPin = '', requestedArea = '') {
-  const candidates=rankDonors(donors.filter(d=>d.available&&isCompatible(d.bloodGroup,recipientGroup)),key,requestedPin,requestedArea);
+  let eligible=donors.filter(d=>d.available&&isCompatible(d.bloodGroup,recipientGroup));
+  if(key==='dijkstra'){
+    const start=resolveDelhiNode(requestedArea,requestedPin),routeMap=start?dijkstra(start).distances:new Map();
+    eligible=eligible.map(d=>{const node=resolveDelhiNode(d.location,d.pincode);return{...d,routeDistanceKm:node?routeMap.get(node)??Infinity:Infinity};});
+  }
+  const candidates=rankDonors(eligible,key,requestedPin,requestedArea);
   const greedy=candidates.slice(0,count);
   const greedyValid=!diversify||new Set(greedy.map(d=>d.location.toLowerCase())).size===greedy.length;
   if(greedy.length===count&&greedyValid)return{candidates,selected:greedy,strategy:'greedy',explored:0,greedy};

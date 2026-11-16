@@ -1,4 +1,4 @@
-import { GROUPS, findMatches } from './algorithms.js';
+import { GROUPS, findMatches, resolveDelhiNode } from './algorithms.js';
 
 const seed = [
   ['D101','Asha Demo','O-','North',1.2,1,true], ['D102','Ravi Demo','O+','Central',2.0,2,true],
@@ -46,7 +46,7 @@ function renderRows() {
     <td><button class="table-action" data-action="toggle" data-id="${escapeHtml(d.id)}">${d.available?'Set unavailable':'Set available'}</button><button class="table-action" data-action="edit" data-id="${escapeHtml(d.id)}">Edit</button><button class="table-action" data-action="delete" data-id="${escapeHtml(d.id)}">Delete</button></td>
   </tr>`).join('') || '<tr><td colspan="7">No donor records match that filter.</td></tr>';
 }
-function resultCard(d, i) { return `<div class="result-row"><span class="rank">${i+1}</span><div><div class="donor-title">${escapeHtml(d.name)}</div><div class="donor-sub">${escapeHtml(d.id)} · ${escapeHtml(d.location)} · PIN ${escapeHtml(d.pincode||'not entered')}</div></div><div class="result-cell"><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></div><div class="result-cell optional-cell">Priority #${d.priority}</div><span class="status-pill">Available</span></div>`; }
+function resultCard(d, i) { return `<div class="result-row"><span class="rank">${i+1}</span><div><div class="donor-title">${escapeHtml(d.name)}</div><div class="donor-sub">${escapeHtml(d.id)} · ${escapeHtml(d.location)} · PIN ${escapeHtml(d.pincode||'not entered')}</div></div><div class="result-cell"><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></div><div class="result-cell optional-cell">${Number.isFinite(d.routeDistanceKm)?`${d.routeDistanceKm.toFixed(1)} demo km`:'Route unavailable'} · Priority #${d.priority}</div><span class="status-pill">Available</span></div>`; }
 
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(t => { t.classList.toggle('active',t===button);t.setAttribute('aria-selected',String(t===button)); });
@@ -58,14 +58,18 @@ document.querySelector('#search-form').addEventListener('submit', event => {
   event.preventDefault();
   const group = document.querySelector('#required-group').value;
   const count = Math.max(1,Math.min(10,Number(document.querySelector('#needed-count').value)||1));
-  const key = 'location';
+  const key = 'dijkstra';
   const pin = document.querySelector('#request-pin').value.trim();
   const area = document.querySelector('#request-area').value.trim();
+  if (!resolveDelhiNode(area,pin)) {
+    document.querySelector('#search-summary').textContent = 'Enter a supported Delhi area or PIN to calculate shortest routes.';
+    return;
+  }
   const diversify = document.querySelector('#diversify').checked;
   const start = performance.now();
   const result = findMatches(donors,group,count,key,diversify,pin,area);
   const elapsed = performance.now() - start;
-  document.querySelector('#search-summary').textContent = `${result.candidates.length} compatible available donor${result.candidates.length===1?'':'s'} for ${group} · ${elapsed.toFixed(3)} ms`;
+  document.querySelector('#search-summary').textContent = `${result.candidates.length} compatible available donor${result.candidates.length===1?'':'s'} for ${group} · shortest demo route from ${resolveDelhiNode(area,pin)} · ${elapsed.toFixed(3)} ms`;
   const list = document.querySelector('#results');
   if (!result.selected.length) {
     list.className='results-empty'; list.innerHTML='<div class="empty-icon">⌕</div><h3>No compatible available donors found</h3><p>Try another blood group or add more demo records.</p>';

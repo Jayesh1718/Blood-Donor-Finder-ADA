@@ -21,7 +21,7 @@ export function rankDonors(donors, key = 'distance', requestedPin = '', requeste
       if(pinA!==pinB)return pinA-pinB;
       const areaA=requestedArea&&norm(a.location)===norm(requestedArea)?0:1,areaB=requestedArea&&norm(b.location)===norm(requestedArea)?0:1;
       if(areaA!==areaB)return areaA-areaB;
-      return Number(a.distance)-Number(b.distance)||a.id.localeCompare(b.id);
+      return Number(a.priority)-Number(b.priority)||a.id.localeCompare(b.id);
     }
     const av=value(a),bv=value(b);return typeof av==='string'?av.localeCompare(bv):av-bv||a.id.localeCompare(b.id);
   };

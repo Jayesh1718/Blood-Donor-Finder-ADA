@@ -8,31 +8,14 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="#" aria-label="BloodLink home"><span class="brand-mark">+</span><span>BloodLink</span></a>
-    <div class="topbar-note"><span class="live-dot"></span> ADA project demo <span class="divider">|</span> Browser-only sample data</div>
-  </header>
+  <header class="topbar"><a class="brand" href="#">Blood donor finder</a><span class="demo-badge">Demo</span></header>
   <main class="shell">
-    <section class="hero">
-      <div>
-        <p class="eyebrow">BLOOD DONOR FINDER &amp; MANAGEMENT SYSTEM</p>
-        <h1>Find the right match,<br /><em>faster.</em></h1>
-        <p class="hero-copy">Organize donor records, rank compatible matches, and see how greedy selection and backtracking work.</p>
-      </div>
-      <div class="hero-aside"><span class="hero-icon">♥</span><span>For classroom demonstration<br /><b>Not a medical decision tool</b></span></div>
-    </section>
-
-    <section class="stats" aria-label="Donor summary">
-      <div class="stat"><span class="stat-label">REGISTERED DONORS</span><strong id="stat-total">—</strong><span class="stat-foot">sample and saved records</span></div>
-      <div class="stat"><span class="stat-label">AVAILABLE NOW</span><strong id="stat-available">—</strong><span class="stat-foot">marked available</span></div>
-      <div class="stat"><span class="stat-label">BLOOD TYPES</span><strong>8</strong><span class="stat-foot">ABO and Rh groups</span></div>
-      <div class="stat stat-highlight"><span class="stat-label">MATCHING METHOD</span><strong>Greedy +</strong><span class="stat-foot">backtracking fallback</span></div>
-    </section>
+    <section class="intro"><h1>Find compatible donors</h1><p>Search the fictional sample directory or manage its records.</p></section>
+    <p class="notice"><b>Classroom demo only.</b> Do not enter real contact details. A qualified medical professional must verify every match.</p>
 
     <nav class="tabs" role="tablist" aria-label="Project sections">
       <button class="tab active" data-tab="finder" role="tab" aria-selected="true">Find donors</button>
       <button class="tab" data-tab="records" role="tab" aria-selected="false">Manage records</button>
-      <button class="tab" data-tab="about" role="tab" aria-selected="false">How it works</button>
     </nav>
 
     <section id="panel-finder" class="panel tab-panel">
@@ -68,18 +51,7 @@
       <p class="small-note">This demo saves records in this browser only. Use fictional data; do not enter real contact details.</p>
     </section>
 
-    <section id="panel-about" class="panel tab-panel hidden">
-      <div class="panel-heading"><div><p class="eyebrow">ALGORITHM WALKTHROUGH</p><h2>From records to ranked matches</h2></div></div>
-      <div class="flow" aria-label="Algorithm workflow"><div><span>01</span><b>Filter</b><small>Compatibility + availability</small></div><i>→</i><div><span>02</span><b>Sort</b><small>Distance, priority or ID</small></div><i>→</i><div><span>03</span><b>Greedy</b><small>Try the top-ranked donors</small></div><i>→</i><div><span>04</span><b>Backtrack</b><small>Try alternatives if needed</small></div></div>
-      <div class="method-grid">
-        <article><span class="method-number">A</span><h3>Compatibility scan</h3><p>Check each record against the red-cell donor compatibility table, then remove unavailable donors.</p><code>O(N)</code></article>
-        <article><span class="method-number">B</span><h3>Priority sort</h3><p>Order eligible donors by the selected rule. The first ranked records become the greedy attempt.</p><code>O(M log M)</code></article>
-        <article><span class="method-number">C</span><h3>Alternative search</h3><p>If the greedy set breaks the one-per-location rule, recursively try other ranked combinations.</p><code>O(2^M) worst case</code></article>
-      </div>
-      <div class="compatibility"><div><p class="eyebrow">SCOPE</p><h3>Red-cell compatibility reference</h3><p>Compatibility is used only to demonstrate matching logic. Hospitals must confirm blood type, crossmatch, donor eligibility, and all clinical decisions.</p></div><div id="compat-table" class="compat-table"></div></div>
-    </section>
-
-    <footer><span>Analysis &amp; Design of Algorithms · 2026</span><span>BloodLink class project <b>♥</b></span></footer>
+    <footer>Classroom demonstration · Fictional sample data</footer>
   </main>
   <div id="toast" class="toast" role="status"></div>
   <script type="module" src="app.js"></script>

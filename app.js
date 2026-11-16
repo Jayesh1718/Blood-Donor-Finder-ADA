@@ -19,7 +19,7 @@ const seed = [
 ].map(([id,name,bloodGroup,location,distance,priority,available]) => ({id,name,bloodGroup,location,distance,priority,available}));
 
 const STORE_KEY = 'bloodlink-donors-v1';
-let donors = loadDonors();
+let donors = loadDonors().map(d=>({...d,location:d.location||d.area||'',pincode:d.pincode||''}));
 function loadDonors() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -34,16 +34,16 @@ function setSelectOptions(id) { document.querySelector(`#${id}`).innerHTML = GRO
 
 function renderRows() {
   const q = document.querySelector('#record-filter').value.trim().toLowerCase();
-  const visible = donors.filter(d => [d.id,d.name,d.bloodGroup,d.location].some(v => String(v).toLowerCase().includes(q)));
+  const visible = donors.filter(d => [d.id,d.name,d.bloodGroup,d.location,d.pincode].some(v => String(v||'').toLowerCase().includes(q)));
   document.querySelector('#record-count').textContent = `${visible.length} of ${donors.length} records`;
   document.querySelector('#donor-rows').innerHTML = visible.map(d => `<tr>
     <td>${escapeHtml(d.id)}<div class="donor-sub">${escapeHtml(d.name)}</div></td><td><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></td>
-    <td>${escapeHtml(d.location)}</td><td>${Number(d.distance).toFixed(1)} km</td><td>#${d.priority}</td>
+    <td>${escapeHtml(d.location)}</td><td>${escapeHtml(d.pincode||'—')}</td><td>${Number(d.distance).toFixed(1)} km</td><td>#${d.priority}</td>
     <td><span class="${d.available?'status-pill':''}">${d.available?'Available':'Unavailable'}</span></td>
     <td><button class="table-action" data-action="toggle" data-id="${escapeHtml(d.id)}">${d.available?'Set unavailable':'Set available'}</button><button class="table-action" data-action="edit" data-id="${escapeHtml(d.id)}">Edit</button><button class="table-action" data-action="delete" data-id="${escapeHtml(d.id)}">Delete</button></td>
-  </tr>`).join('') || '<tr><td colspan="7">No donor records match that filter.</td></tr>';
+  </tr>`).join('') || '<tr><td colspan="8">No donor records match that filter.</td></tr>';
 }
-function resultCard(d, i) { return `<div class="result-row"><span class="rank">${i+1}</span><div><div class="donor-title">${escapeHtml(d.name)}</div><div class="donor-sub">${escapeHtml(d.id)} · ${escapeHtml(d.location)} · ${escapeHtml(d.contact||'Contact not recorded')}</div></div><div class="result-cell"><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></div><div class="result-cell optional-cell">${Number(d.distance).toFixed(1)} km</div><div class="result-cell optional-cell">Priority #${d.priority}</div><span class="status-pill">Available</span></div>`; }
+function resultCard(d, i) { return `<div class="result-row"><span class="rank">${i+1}</span><div><div class="donor-title">${escapeHtml(d.name)}</div><div class="donor-sub">${escapeHtml(d.id)} · ${escapeHtml(d.location)} · PIN ${escapeHtml(d.pincode||'not entered')}</div></div><div class="result-cell"><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></div><div class="result-cell optional-cell">${Number(d.distance).toFixed(1)} km</div><div class="result-cell optional-cell">Priority #${d.priority}</div><span class="status-pill">Available</span></div>`; }
 
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(t => { t.classList.toggle('active',t===button);t.setAttribute('aria-selected',String(t===button)); });
@@ -56,9 +56,12 @@ document.querySelector('#search-form').addEventListener('submit', event => {
   const group = document.querySelector('#required-group').value;
   const count = Math.max(1,Math.min(10,Number(document.querySelector('#needed-count').value)||1));
   const key = document.querySelector('#rank-by').value;
+  const pin = document.querySelector('#request-pin').value.trim();
+  const area = document.querySelector('#request-area').value.trim();
+  if(key==='location'&&!pin&&!area){toast('Enter an area or PIN to rank by location.');return;}
   const diversify = document.querySelector('#diversify').checked;
   const start = performance.now();
-  const result = findMatches(donors,group,count,key,diversify);
+  const result = findMatches(donors,group,count,key,diversify,pin,area);
   const elapsed = performance.now() - start;
   document.querySelector('#search-summary').textContent = `${result.candidates.length} compatible available donor${result.candidates.length===1?'':'s'} for ${group} · ${elapsed.toFixed(3)} ms`;
   const list = document.querySelector('#results');
@@ -70,7 +73,7 @@ document.querySelector('#search-form').addEventListener('submit', event => {
   }
   const note = document.querySelector('#algorithm-note'); note.classList.remove('hidden');
   note.innerHTML = result.strategy === 'backtracking'
-    ? `<b>Backtracking fallback used.</b> The top-ranked greedy set repeated a location. The search explored ${result.explored} states and found a location-diverse set of ${result.selected.length}. Candidate ordering stayed ${key === 'distance' ? 'closest-first' : key === 'priority' ? 'priority-first' : 'ID-first'}.`
+    ? `<b>Backtracking fallback used.</b> The top-ranked greedy set repeated a location. The search explored ${result.explored} states and found a location-diverse set of ${result.selected.length}.`
     : `<b>Greedy selection used.</b> The first ${result.selected.length} ranked eligible donors ${result.selected.length===count?'satisfied':'were the best available'} selection. ${diversify?'Each selected donor is from a different location.':'Location diversity was turned off.'}`;
 });
 
@@ -86,7 +89,7 @@ document.querySelector('#donor-form').addEventListener('submit',event=>{
   if (donors.some(d=>d.id.toLowerCase()===id.toLowerCase()&&d.id!==editing)) { toast('That donor ID already exists.');return; }
   const donor={id,name:document.querySelector('#donor-name').value.trim(),bloodGroup:document.querySelector('#donor-group').value,
     contact:document.querySelector('#donor-contact').value.trim(),
-    location:document.querySelector('#donor-location').value.trim(),distance:Number(document.querySelector('#donor-distance').value),
+    location:document.querySelector('#donor-location').value.trim(),pincode:document.querySelector('#donor-pin').value.trim(),distance:Number(document.querySelector('#donor-distance').value),
     priority:Number(document.querySelector('#donor-priority').value),available:document.querySelector('#donor-available').checked};
   if(editing){donors=donors.map(d=>d.id===editing?donor:d);toast('Donor record updated.');}else{donors.push(donor);toast('Donor added to this browser.');}
   persist();resetForm();
@@ -102,14 +105,15 @@ document.querySelector('#donor-rows').addEventListener('click',event=>{
     document.querySelector('#donor-id').value=donor.id;document.querySelector('#donor-name').value=donor.name;
     document.querySelector('#donor-contact').value=donor.contact||'';
     document.querySelector('#donor-group').value=donor.bloodGroup;document.querySelector('#donor-location').value=donor.location;
+    document.querySelector('#donor-pin').value=donor.pincode||'';
     document.querySelector('#donor-distance').value=donor.distance;document.querySelector('#donor-priority').value=donor.priority;
     document.querySelector('#donor-available').checked=donor.available;document.querySelector('#save-donor').textContent='Save changes';document.querySelector('#cancel-edit').classList.remove('hidden');
   }
 });
 document.querySelector('#reset-demo').addEventListener('click',()=>{donors=structuredClone(seed);persist();toast('Sample records restored.');});
 document.querySelector('#export-csv').addEventListener('click',()=>{
-  const header=['id','name','contact','blood_group','location','distance_km','priority','available'];
-  const csv=[header.join(','),...donors.map(d=>[d.id,d.name,d.contact||'',d.bloodGroup,d.location,d.distance,d.priority,d.available].map(v=>`"${String(v).replaceAll('"','""')}"`).join(','))].join('\n');
+  const header=['id','name','contact','blood_group','area','pincode','distance_km','priority','available'];
+  const csv=[header.join(','),...donors.map(d=>[d.id,d.name,d.contact||'',d.bloodGroup,d.location,d.pincode||'',d.distance,d.priority,d.available].map(v=>`"${String(v).replaceAll('"','""')}"`).join(','))].join('\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='bloodlink-demo-donors.csv';a.click();URL.revokeObjectURL(url);
 });
 renderRows();

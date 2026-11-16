@@ -1,5 +1,12 @@
 import { GROUPS, findMatches, resolveDelhiNode } from './algorithms.js';
 
+const loginView=document.querySelector('#login-view'),appScreen=document.querySelector('#app-screen');
+function enterDemo(){sessionStorage.setItem('bloodlink-demo-session','active');loginView.classList.add('hidden');appScreen.classList.remove('hidden');}
+if(sessionStorage.getItem('bloodlink-demo-session')==='active'){loginView.classList.add('hidden');appScreen.classList.remove('hidden');}
+document.querySelector('#login-form').addEventListener('submit',event=>{event.preventDefault();enterDemo();event.currentTarget.reset();});
+document.querySelector('#skip-login').addEventListener('click',enterDemo);
+document.querySelector('#logout').addEventListener('click',()=>{sessionStorage.removeItem('bloodlink-demo-session');appScreen.classList.add('hidden');loginView.classList.remove('hidden');});
+
 const seed = [
   ['D101','Asha Demo','O-','North',1.2,1,true], ['D102','Ravi Demo','O+','Central',2.0,2,true],
   ['D103','Mina Demo','A-','East',3.1,3,true], ['D104','Dev Demo','B+','North',.8,1,true],
@@ -22,7 +29,7 @@ const AREA_PIN={'Rohini':'110085','Connaught Place':'110001','Laxmi Nagar':'1100
 const seedDonors=seed.map(([id,name,bloodGroup,region,distance,priority,available])=>{const location=REGION_AREA[region];return{id,name,bloodGroup,location,pincode:AREA_PIN[location],distance,priority,available};});
 
 const STORE_KEY = 'bloodlink-donors-v1';
-let donors = loadDonors().map(d=>{const oldLocation=d.location||d.area||'';const location=REGION_AREA[oldLocation]||oldLocation;return{...d,location,pincode:d.pincode||AREA_PIN[location]||''};});
+let donors = loadDonors().map((d,index)=>{const oldLocation=d.location||d.area||'';const location=REGION_AREA[oldLocation]||oldLocation;return{...d,location,pincode:d.pincode||AREA_PIN[location]||'',priority:index+1};});
 function loadDonors() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY));
@@ -46,7 +53,7 @@ function renderRows() {
     <td><button class="table-action" data-action="toggle" data-id="${escapeHtml(d.id)}">${d.available?'Set unavailable':'Set available'}</button><button class="table-action" data-action="edit" data-id="${escapeHtml(d.id)}">Edit</button><button class="table-action" data-action="delete" data-id="${escapeHtml(d.id)}">Delete</button></td>
   </tr>`).join('') || '<tr><td colspan="7">No donor records match that filter.</td></tr>';
 }
-function resultCard(d, i) { const route=Number.isFinite(d.routeDistanceKm)?`${d.routeDistanceKm.toFixed(1)} demo km shortest route`:'Route unavailable';return `<div class="result-row"><span class="rank">${i+1}</span><div><div class="donor-title">${escapeHtml(d.name)}</div><div class="donor-sub">${escapeHtml(d.id)} · ${escapeHtml(d.location)} · PIN ${escapeHtml(d.pincode||'not entered')} · ${route}</div></div><div class="result-cell"><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></div><div class="result-cell optional-cell">Priority #${d.priority}</div><span class="status-pill">Available</span></div>`; }
+function resultCard(d, i) { const route=Number.isFinite(d.routeDistanceKm)?`${d.routeDistanceKm.toFixed(1)} demo km`:'Route unavailable';const path=d.routePath?.length?d.routePath.join(' → '):'No graph path';return `<div class="result-row"><span class="rank">${i+1}</span><div><div class="donor-title">${escapeHtml(d.name)}</div><div class="donor-sub">${escapeHtml(d.id)} · ${escapeHtml(d.location)} · PIN ${escapeHtml(d.pincode||'not entered')} · ${route}<br>Route: ${escapeHtml(path)}</div></div><div class="result-cell"><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></div><div class="result-cell optional-cell">Registered #${d.priority}</div><span class="status-pill">Available</span></div>`; }
 
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(t => { t.classList.toggle('active',t===button);t.setAttribute('aria-selected',String(t===button)); });
@@ -85,7 +92,6 @@ document.querySelector('#search-form').addEventListener('submit', event => {
 
 function resetForm() {
   document.querySelector('#donor-form').reset(); document.querySelector('#edit-id').value='';
-  document.querySelector('#donor-priority').value='1';
   document.querySelector('#save-donor').textContent='Add donor'; document.querySelector('#cancel-edit').classList.add('hidden');
 }
 document.querySelector('#donor-form').addEventListener('submit',event=>{
@@ -93,10 +99,11 @@ document.querySelector('#donor-form').addEventListener('submit',event=>{
   const editing = document.querySelector('#edit-id').value;
   const id = document.querySelector('#donor-id').value.trim().toUpperCase();
   if (donors.some(d=>d.id.toLowerCase()===id.toLowerCase()&&d.id!==editing)) { toast('That donor ID already exists.');return; }
+  const oldDonor=editing?donors.find(d=>d.id===editing):null;
   const donor={id,name:document.querySelector('#donor-name').value.trim(),bloodGroup:document.querySelector('#donor-group').value,
     contact:document.querySelector('#donor-contact').value.trim(),
     location:document.querySelector('#donor-location').value.trim(),pincode:document.querySelector('#donor-pin').value.trim(),
-    priority:Number(document.querySelector('#donor-priority').value),available:document.querySelector('#donor-available').checked};
+    priority:oldDonor?.priority??(donors.length?Math.max(...donors.map(d=>d.priority))+1:1),available:document.querySelector('#donor-available').checked};
   if(editing){donors=donors.map(d=>d.id===editing?donor:d);toast('Donor record updated.');}else{donors.push(donor);toast('Donor added to this browser.');}
   persist();resetForm();
 });
@@ -112,11 +119,10 @@ document.querySelector('#donor-rows').addEventListener('click',event=>{
     document.querySelector('#donor-contact').value=donor.contact||'';
     document.querySelector('#donor-group').value=donor.bloodGroup;document.querySelector('#donor-location').value=donor.location;
     document.querySelector('#donor-pin').value=donor.pincode||'';
-    document.querySelector('#donor-priority').value=donor.priority;
     document.querySelector('#donor-available').checked=donor.available;document.querySelector('#save-donor').textContent='Save changes';document.querySelector('#cancel-edit').classList.remove('hidden');
   }
 });
-document.querySelector('#reset-demo').addEventListener('click',()=>{donors=structuredClone(seedDonors);persist();toast('Sample records restored.');});
+document.querySelector('#reset-demo').addEventListener('click',()=>{donors=structuredClone(seedDonors).map((d,index)=>({...d,priority:index+1}));persist();toast('Sample records restored.');});
 document.querySelector('#export-csv').addEventListener('click',()=>{
   const header=['id','name','contact','blood_group','area','pincode','priority','available'];
   const csv=[header.join(','),...donors.map(d=>[d.id,d.name,d.contact||'',d.bloodGroup,d.location,d.pincode||'',d.priority,d.available].map(v=>`"${String(v).replaceAll('"','""')}"`).join(','))].join('\n');

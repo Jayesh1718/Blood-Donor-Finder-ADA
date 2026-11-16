@@ -8,10 +8,9 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="#">Blood donor finder</a><span class="demo-badge">Demo</span></header>
+  <header class="topbar"><a class="brand" href="#">Blood donor finder</a></header>
   <main class="shell">
     <section class="intro"><h1>Find compatible donors</h1><p>Search the fictional sample directory or manage its records.</p></section>
-    <p class="notice"><b>Classroom demo only.</b> Do not enter real contact details. A qualified medical professional must verify every match.</p>
 
     <nav class="tabs" role="tablist" aria-label="Project sections">
       <button class="tab active" data-tab="finder" role="tab" aria-selected="true">Find donors</button>
@@ -23,7 +22,7 @@
       <form id="search-form" class="search-controls">
         <label>Required blood group<select id="required-group" required></select></label>
         <label>Donors needed<input id="needed-count" type="number" min="1" max="10" value="2" required /></label>
-        <label>Your Delhi area<input id="request-area" maxlength="50" placeholder="e.g. Rohini" /></label>
+        <label>Your area<input id="request-area" maxlength="50" placeholder="e.g. Rohini" /></label>
         <label>Your PIN<input id="request-pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit PIN" /></label>
         <label>Rank by<select id="rank-by"><option value="location">PIN / area match first</option><option value="distance">Entered distance</option><option value="priority">Priority first</option><option value="id">Donor ID</option></select></label>
         <button class="primary-button" type="submit">Find matches <span aria-hidden="true">→</span></button>

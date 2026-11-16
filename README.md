@@ -17,7 +17,7 @@ No package installation, account, server database, or network connection is requ
 - Rank by distance, priority, or donor ID.
 - Try the first `k` ranked candidates greedily. When the one-donor-per-location constraint is violated, backtracking searches ranked alternatives.
 - Export the directory as CSV; reset to the bundled fictional sample data.
-- Display the compatibility rules, algorithm steps, selected donor set, and measured search time.
+- Display the selected donor set, selection strategy, search states explored, and elapsed time.
 
 ## Inputs and outputs
 

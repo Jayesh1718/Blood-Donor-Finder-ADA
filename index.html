@@ -10,7 +10,7 @@
 <body>
   <section id="login-view" class="login-view">
     <div class="login-art"><div class="brand-mark">✚</div><p class="login-kicker">BLOODLINK · DELHI NETWORK</p><h1>Every match can make a difference.</h1><p>Find compatible donor records, compare illustrative routes, and manage a local demo directory.</p><div class="login-stats"><span><b>30</b> sample donors</span><span><b>5</b> Delhi areas</span><span><b>1</b> clear goal</span></div></div>
-    <form id="login-form" class="login-card"><p class="eyebrow">WELCOME BACK</p><h2>Sign in to BloodLink</h2><p class="login-copy">Use any non-empty details to enter presentation mode.</p><label>Email address<input id="login-email" type="email" placeholder="you@example.com" autocomplete="username" required /></label><label>Password<input id="login-password" type="password" placeholder="Enter any demo password" autocomplete="current-password" required /></label><button class="primary-button" type="submit">Continue to dashboard <span aria-hidden="true">→</span></button><p class="login-disclosure">Presentation demo only. These fields are not sent to a server or saved.</p><button id="skip-login" class="text-button" type="button">Explore without signing in</button></form>
+    <form id="login-form" class="login-card"><p class="eyebrow">WELCOME BACK</p><h2>Sign in to BloodLink</h2><label>Email address<input id="login-email" type="email" placeholder="you@example.com" autocomplete="username" required /></label><label>Password<input id="login-password" type="password" placeholder="Password" autocomplete="current-password" required /></label><button class="primary-button" type="submit">Sign in <span aria-hidden="true">→</span></button><button id="skip-login" class="text-button" type="button">Continue as guest</button></form>
   </section>
   <div id="app-screen" class="hidden">
   <header class="topbar"><a class="brand" href="#">Blood donor finder</a><button id="logout" class="text-button">Sign out</button></header>
@@ -19,7 +19,7 @@
 
     <nav class="tabs" role="tablist" aria-label="Project sections">
       <button class="tab active" data-tab="finder" role="tab" aria-selected="true">Find donors</button>
-      <button class="tab" data-tab="records" role="tab" aria-selected="false">Manage records</button>
+      <button class="tab" data-tab="records" role="tab" aria-selected="false">Register as a donor</button>
     </nav>
 
     <section id="panel-finder" class="panel tab-panel">
@@ -31,7 +31,6 @@
         <label>Your PIN<input id="request-pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit PIN" /></label>
         <button class="primary-button" type="submit">Find matches <span aria-hidden="true">→</span></button>
       </form>
-      <p class="route-note">Routes use Dijkstra’s shortest-path algorithm on a small illustrative Delhi network. Demo kilometres are not live road distances.</p>
       <label class="check-row"><input id="diversify" type="checkbox" checked /> Prefer one donor per location when possible</label>
       <div id="search-summary" class="search-summary" aria-live="polite">Choose a required blood group to begin.</div>
       <div id="results" class="results-empty"><div class="empty-icon">⌕</div><h3>Your results will appear here</h3><p>Compatible donors will be ranked by shortest demo route, then priority.</p></div>
@@ -39,7 +38,7 @@
     </section>
 
     <section id="panel-records" class="panel tab-panel hidden">
-      <div class="panel-heading"><div><p class="eyebrow">DONOR DIRECTORY</p><h2>Manage donor records</h2></div><button id="export-csv" class="secondary-button">Export CSV</button></div>
+      <div class="panel-heading"><div><p class="eyebrow">DONOR DIRECTORY</p><h2>Register as a donor</h2></div><button id="export-csv" class="secondary-button">Export CSV</button></div>
       <form id="donor-form" class="record-form">
         <input type="hidden" id="edit-id" />
         <label>Donor ID<input id="donor-id" placeholder="e.g. D201" required maxlength="12" /></label>
@@ -53,10 +52,8 @@
       </form>
       <div class="table-tools"><label class="search-box">⌕ <input id="record-filter" placeholder="Filter by name, ID, blood group or location" /></label><span id="record-count"></span></div>
       <div class="table-wrap"><table><thead><tr><th>Donor</th><th>Blood group</th><th>Area</th><th>PIN</th><th>Registration order</th><th>Status</th><th></th></tr></thead><tbody id="donor-rows"></tbody></table></div>
-      <p class="small-note">This demo saves records in this browser only. Use fictional data; do not enter real contact details.</p>
     </section>
 
-    <footer>Classroom demonstration · Fictional sample data</footer>
   </main>
   <div id="toast" class="toast" role="status"></div>
   </div>

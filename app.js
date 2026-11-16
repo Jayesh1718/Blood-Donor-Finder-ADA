@@ -16,16 +16,19 @@ const seed = [
   ['D125','Noor Demo','AB-','South',8.0,8,true], ['D126','Sam Demo','O+','Central',4.0,4,false],
   ['D127','Leah Demo','A-','North',3.4,4,true], ['D128','Milan Demo','B+','East',4.7,6,true],
   ['D129','Esha Demo','AB+','West',1.6,1,true], ['D130','Ari Demo','O-','South',6.3,5,true],
-].map(([id,name,bloodGroup,location,distance,priority,available]) => ({id,name,bloodGroup,location,distance,priority,available}));
+];
+const REGION_AREA={North:'Rohini',Central:'Connaught Place',East:'Laxmi Nagar',West:'Dwarka Sector 6',South:'Lajpat Nagar'};
+const AREA_PIN={'Rohini':'110085','Connaught Place':'110001','Laxmi Nagar':'110092','Dwarka Sector 6':'110075','Lajpat Nagar':'110024'};
+const seedDonors=seed.map(([id,name,bloodGroup,region,distance,priority,available])=>{const location=REGION_AREA[region];return{id,name,bloodGroup,location,pincode:AREA_PIN[location],distance,priority,available};});
 
 const STORE_KEY = 'bloodlink-donors-v1';
-let donors = loadDonors().map(d=>({...d,location:d.location||d.area||'',pincode:d.pincode||''}));
+let donors = loadDonors().map(d=>{const oldLocation=d.location||d.area||'';const location=REGION_AREA[oldLocation]||oldLocation;return{...d,location,pincode:d.pincode||AREA_PIN[location]||''};});
 function loadDonors() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY));
     if (Array.isArray(saved) && saved.every(d => d.id && d.bloodGroup)) return saved;
   } catch { /* use the bundled fictional sample set */ }
-  return structuredClone(seed);
+  return structuredClone(seedDonors);
 }
 function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(donors)); renderRows(); }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
@@ -109,7 +112,7 @@ document.querySelector('#donor-rows').addEventListener('click',event=>{
     document.querySelector('#donor-available').checked=donor.available;document.querySelector('#save-donor').textContent='Save changes';document.querySelector('#cancel-edit').classList.remove('hidden');
   }
 });
-document.querySelector('#reset-demo').addEventListener('click',()=>{donors=structuredClone(seed);persist();toast('Sample records restored.');});
+document.querySelector('#reset-demo').addEventListener('click',()=>{donors=structuredClone(seedDonors);persist();toast('Sample records restored.');});
 document.querySelector('#export-csv').addEventListener('click',()=>{
   const header=['id','name','contact','blood_group','area','pincode','priority','available'];
   const csv=[header.join(','),...donors.map(d=>[d.id,d.name,d.contact||'',d.bloodGroup,d.location,d.pincode||'',d.priority,d.available].map(v=>`"${String(v).replaceAll('"','""')}"`).join(','))].join('\n');

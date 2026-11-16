@@ -15,14 +15,14 @@ No package installation, account, server database, or network connection is requ
 - Add, edit, remove, filter, and update availability for donor records; donor IDs must be unique.
 - Filter by red-cell compatibility and availability.
 - Store a Delhi area/locality and optional six-digit PIN for each donor; use a request area/PIN to rank matching locations first.
-- Rank by area/PIN, manually entered distance, priority, or donor ID. PINs are not geocoded and distances are not calculated from them.
+- Automatically rank exact PIN matches first, exact area matches second, then donor priority. No manual ranking choice or distance entry is needed.
 - Try the first `k` ranked candidates greedily. When the one-donor-per-location constraint is violated, backtracking searches ranked alternatives.
 - Export the directory as CSV; reset to the bundled fictional sample data.
 - Display the selected donor set, selection strategy, search states explored, and elapsed time.
 
 ## Inputs and outputs
 
-Inputs: donor ID, name, optional contact, blood group, Delhi area/locality, optional PIN, manually entered distance, priority, availability, requested area/PIN, recipient blood group, donor count, ranking rule, and location-diversity constraint.
+Inputs: donor ID, name, optional contact, blood group, Delhi area/locality, optional PIN, priority, availability, requested area/PIN, recipient blood group, donor count, and location-diversity constraint.
 
 Outputs: compatible available donors, ranked candidate list, selected donors, selection strategy, search states explored, and elapsed time.
 

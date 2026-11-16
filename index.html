@@ -26,9 +26,10 @@
         <label>Your PIN<input id="request-pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit PIN" /></label>
         <button class="primary-button" type="submit">Find matches <span aria-hidden="true">→</span></button>
       </form>
+      <p class="route-note">Routes use Dijkstra’s shortest-path algorithm on a small illustrative Delhi network. Demo kilometres are not live road distances.</p>
       <label class="check-row"><input id="diversify" type="checkbox" checked /> Prefer one donor per location when possible</label>
       <div id="search-summary" class="search-summary" aria-live="polite">Choose a required blood group to begin.</div>
-      <div id="results" class="results-empty"><div class="empty-icon">⌕</div><h3>Your results will appear here</h3><p>Available compatible donors are ranked by your selected priority.</p></div>
+      <div id="results" class="results-empty"><div class="empty-icon">⌕</div><h3>Your results will appear here</h3><p>Compatible donors will be ranked by shortest demo route, then priority.</p></div>
       <div id="algorithm-note" class="algorithm-note hidden"></div>
     </section>
 

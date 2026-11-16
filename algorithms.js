@@ -12,13 +12,23 @@ function mergeSort(items, compare) {
   let i=0,j=0;while(i<left.length&&j<right.length)merged.push(compare(left[i],right[j])<=0?left[i++]:right[j++]);
   return merged.concat(left.slice(i),right.slice(j));
 }
-export function rankDonors(donors, key = 'distance') {
+export function rankDonors(donors, key = 'distance', requestedPin = '', requestedArea = '') {
   const value = key === 'id' ? d => d.id.toLowerCase() : key === 'priority' ? d => Number(d.priority) : d => Number(d.distance);
-  const compare=(a,b)=>{const av=value(a),bv=value(b);return typeof av==='string'?av.localeCompare(bv):av-bv||a.id.localeCompare(b.id);};
+  const norm=s=>String(s||'').trim().toLowerCase();
+  const compare=(a,b)=>{
+    if(key==='location'){
+      const pinA=requestedPin&&a.pincode===requestedPin?0:1,pinB=requestedPin&&b.pincode===requestedPin?0:1;
+      if(pinA!==pinB)return pinA-pinB;
+      const areaA=requestedArea&&norm(a.location)===norm(requestedArea)?0:1,areaB=requestedArea&&norm(b.location)===norm(requestedArea)?0:1;
+      if(areaA!==areaB)return areaA-areaB;
+      return Number(a.distance)-Number(b.distance)||a.id.localeCompare(b.id);
+    }
+    const av=value(a),bv=value(b);return typeof av==='string'?av.localeCompare(bv):av-bv||a.id.localeCompare(b.id);
+  };
   return mergeSort([...donors],compare);
 }
-export function findMatches(donors, recipientGroup, count, key = 'distance', diversify = true) {
-  const candidates=rankDonors(donors.filter(d=>d.available&&isCompatible(d.bloodGroup,recipientGroup)),key);
+export function findMatches(donors, recipientGroup, count, key = 'distance', diversify = true, requestedPin = '', requestedArea = '') {
+  const candidates=rankDonors(donors.filter(d=>d.available&&isCompatible(d.bloodGroup,recipientGroup)),key,requestedPin,requestedArea);
   const greedy=candidates.slice(0,count);
   const greedyValid=!diversify||new Set(greedy.map(d=>d.location.toLowerCase())).size===greedy.length;
   if(greedy.length===count&&greedyValid)return{candidates,selected:greedy,strategy:'greedy',explored:0,greedy};

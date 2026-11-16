@@ -1,4 +1,4 @@
-import { GROUPS, COMPATIBLE, findMatches } from './algorithms.js';
+import { GROUPS, findMatches } from './algorithms.js';
 
 const seed = [
   ['D101','Asha Demo','O-','North',1.2,1,true], ['D102','Ravi Demo','O+','Central',2.0,2,true],
@@ -27,15 +27,11 @@ function loadDonors() {
   } catch { /* use the bundled fictional sample set */ }
   return structuredClone(seed);
 }
-function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(donors)); renderStats(); renderRows(); }
+function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(donors)); renderRows(); }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 function toast(message) { const el = document.querySelector('#toast'); el.textContent = message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2100); }
 function setSelectOptions(id) { document.querySelector(`#${id}`).innerHTML = GROUPS.map(g => `<option value="${g}">${g}</option>`).join(''); }
 
-function renderStats() {
-  document.querySelector('#stat-total').textContent = donors.length;
-  document.querySelector('#stat-available').textContent = donors.filter(d => d.available).length;
-}
 function renderRows() {
   const q = document.querySelector('#record-filter').value.trim().toLowerCase();
   const visible = donors.filter(d => [d.id,d.name,d.bloodGroup,d.location].some(v => String(v).toLowerCase().includes(q)));
@@ -116,6 +112,5 @@ document.querySelector('#export-csv').addEventListener('click',()=>{
   const csv=[header.join(','),...donors.map(d=>[d.id,d.name,d.contact||'',d.bloodGroup,d.location,d.distance,d.priority,d.available].map(v=>`"${String(v).replaceAll('"','""')}"`).join(','))].join('\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='bloodlink-demo-donors.csv';a.click();URL.revokeObjectURL(url);
 });
-document.querySelector('#compat-table').innerHTML=GROUPS.map(group=>`<span><b>${group}</b>← ${COMPATIBLE[group].join(', ')}</span>`).join('');
-renderStats();renderRows();
+renderRows();
 

@@ -61,3 +61,5 @@ This is an educational matching demo, not a clinical service. The compatibility 
 
 Analysis and Design of Algorithms (ADA)
 
+The sample Delhi locality/PIN pairs are Rohini (110085), Connaught Place (110001), Laxmi Nagar (110092), Dwarka Sector 6 (110075), and Lajpat Nagar (110024). They are illustrative locations; verify a donor's actual PIN before use. PIN references: [India Post PIN Code List](https://www.indiapost.gov.in/rti/pincodelist).
+

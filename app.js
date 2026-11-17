@@ -26,33 +26,27 @@ const seed = [
 ];
 const REGION_AREA={North:'Rohini',Central:'Connaught Place',East:'Laxmi Nagar',West:'Dwarka Sector 6',South:'Lajpat Nagar'};
 const AREA_PIN={'Rohini':'110085','Connaught Place':'110001','Laxmi Nagar':'110092','Dwarka Sector 6':'110075','Lajpat Nagar':'110024'};
-const seedDonors=seed.map(([id,name,bloodGroup,region,distance,priority,available])=>{const location=REGION_AREA[region];return{id,name,bloodGroup,location,pincode:AREA_PIN[location],distance,priority,available};});
+const seedDonors=seed.map(([id,name,bloodGroup,region,_distance,_oldPriority,available],index)=>{const location=REGION_AREA[region];return{id,name,bloodGroup,location,pincode:AREA_PIN[location],priority:index+1,available};});
 
-const STORE_KEY = 'bloodlink-donors-v1';
+const STORE_KEY = 'bloodlink-donors-v3';
 let donors = loadDonors().map((d,index)=>{const oldLocation=d.location||d.area||'';const location=REGION_AREA[oldLocation]||oldLocation;return{...d,location,pincode:d.pincode||AREA_PIN[location]||'',priority:index+1};});
 function loadDonors() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORE_KEY));
-    if (Array.isArray(saved) && saved.every(d => d.id && d.bloodGroup)) return saved;
+    const current=JSON.parse(localStorage.getItem(STORE_KEY));
+    const previous=JSON.parse(localStorage.getItem('bloodlink-donors-v2'));
+    const saved=Array.isArray(current)?current:Array.isArray(previous)?previous:[];
+    if(saved.every(d=>d.id&&d.bloodGroup)){
+      const ids=new Set(seedDonors.map(d=>d.id));
+      return [...seedDonors,...saved.filter(d=>!ids.has(d.id))];
+    }
   } catch { /* use the bundled fictional sample set */ }
-  return structuredClone(seedDonors);
+  return seedDonors;
 }
-function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(donors)); renderRows(); }
+function persist() { localStorage.setItem(STORE_KEY, JSON.stringify(donors)); }
 function escapeHtml(value) { return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
 function toast(message) { const el = document.querySelector('#toast'); el.textContent = message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2100); }
 function setSelectOptions(id) { document.querySelector(`#${id}`).innerHTML = GROUPS.map(g => `<option value="${g}">${g}</option>`).join(''); }
 
-function renderRows() {
-  const q = document.querySelector('#record-filter').value.trim().toLowerCase();
-  const visible = donors.filter(d => [d.id,d.name,d.bloodGroup,d.location,d.pincode].some(v => String(v||'').toLowerCase().includes(q)));
-  document.querySelector('#record-count').textContent = `${visible.length} of ${donors.length} records`;
-  document.querySelector('#donor-rows').innerHTML = visible.map(d => `<tr>
-    <td>${escapeHtml(d.id)}<div class="donor-sub">${escapeHtml(d.name)}</div></td><td><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></td>
-    <td>${escapeHtml(d.location)}</td><td>${escapeHtml(d.pincode||'—')}</td><td>#${d.priority}</td>
-    <td><span class="${d.available?'status-pill':''}">${d.available?'Available':'Unavailable'}</span></td>
-    <td><button class="table-action" data-action="toggle" data-id="${escapeHtml(d.id)}">${d.available?'Set unavailable':'Set available'}</button><button class="table-action" data-action="edit" data-id="${escapeHtml(d.id)}">Edit</button><button class="table-action" data-action="delete" data-id="${escapeHtml(d.id)}">Delete</button></td>
-  </tr>`).join('') || '<tr><td colspan="7">No donor records match that filter.</td></tr>';
-}
 function resultCard(d, i) { const route=Number.isFinite(d.routeDistanceKm)?`${d.routeDistanceKm.toFixed(1)} demo km`:'Route unavailable';const path=d.routePath?.length?d.routePath.join(' → '):'No graph path';return `<div class="result-row"><span class="rank">${i+1}</span><div><div class="donor-title">${escapeHtml(d.name)}</div><div class="donor-sub">${escapeHtml(d.id)} · ${escapeHtml(d.location)} · PIN ${escapeHtml(d.pincode||'not entered')} · ${route}<br>Route: ${escapeHtml(path)}</div></div><div class="result-cell"><span class="blood-pill">${escapeHtml(d.bloodGroup)}</span></div><div class="result-cell optional-cell">Registered #${d.priority}</div><span class="status-pill">Available</span></div>`; }
 
 document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => {
@@ -60,7 +54,6 @@ document.querySelectorAll('.tab').forEach(button => button.addEventListener('cli
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('hidden',p.id !== `panel-${button.dataset.tab}`));
 }));
 setSelectOptions('required-group'); setSelectOptions('donor-group');
-document.querySelector('#record-filter').addEventListener('input', renderRows);
 document.querySelector('#search-form').addEventListener('submit', event => {
   event.preventDefault();
   const group = document.querySelector('#required-group').value;
@@ -108,25 +101,6 @@ document.querySelector('#donor-form').addEventListener('submit',event=>{
   persist();resetForm();
 });
 document.querySelector('#cancel-edit').addEventListener('click',resetForm);
-document.querySelector('#donor-rows').addEventListener('click',event=>{
-  const button=event.target.closest('button[data-action]'); if(!button)return;
-  const donor=donors.find(d=>d.id===button.dataset.id);if(!donor)return;
-  if(button.dataset.action==='toggle'){donor.available=!donor.available;persist();toast('Availability updated.');}
-  if(button.dataset.action==='delete'){donors=donors.filter(d=>d.id!==donor.id);persist();toast('Record removed.');}
-  if(button.dataset.action==='edit'){
-    document.querySelector('[data-tab="records"]').click();document.querySelector('#edit-id').value=donor.id;
-    document.querySelector('#donor-id').value=donor.id;document.querySelector('#donor-name').value=donor.name;
-    document.querySelector('#donor-contact').value=donor.contact||'';
-    document.querySelector('#donor-group').value=donor.bloodGroup;document.querySelector('#donor-location').value=donor.location;
-    document.querySelector('#donor-pin').value=donor.pincode||'';
-    document.querySelector('#donor-available').checked=donor.available;document.querySelector('#save-donor').textContent='Save changes';document.querySelector('#cancel-edit').classList.remove('hidden');
-  }
-});
-document.querySelector('#reset-demo').addEventListener('click',()=>{donors=structuredClone(seedDonors).map((d,index)=>({...d,priority:index+1}));persist();toast('Sample records restored.');});
-document.querySelector('#export-csv').addEventListener('click',()=>{
-  const header=['id','name','contact','blood_group','area','pincode','priority','available'];
-  const csv=[header.join(','),...donors.map(d=>[d.id,d.name,d.contact||'',d.bloodGroup,d.location,d.pincode||'',d.priority,d.available].map(v=>`"${String(v).replaceAll('"','""')}"`).join(','))].join('\n');
-  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='bloodlink-demo-donors.csv';a.click();URL.revokeObjectURL(url);
-});
-renderRows();
+
+
 

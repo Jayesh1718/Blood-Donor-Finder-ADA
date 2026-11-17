@@ -1,4 +1,4 @@
-import { GROUPS, findMatches, resolveDelhiNode } from './algorithms.js';
+import { GROUPS, findMatches, resolveDelhiNode } from './algorithms.js?v=5';
 
 const loginView=document.querySelector('#login-view'),appScreen=document.querySelector('#app-screen');
 function enterDemo(){sessionStorage.setItem('bloodlink-demo-session','active');loginView.classList.add('hidden');appScreen.classList.remove('hidden');}
@@ -82,6 +82,8 @@ document.querySelector('#search-form').addEventListener('submit', event => {
     ? `<b>Backtracking fallback used.</b> The top-ranked greedy set repeated a location. The search explored ${result.explored} states and found a location-diverse set of ${result.selected.length}.`
     : `<b>Greedy selection used.</b> The first ${result.selected.length} ranked eligible donors ${result.selected.length===count?'satisfied':'were the best available'} selection. ${diversify?'Each selected donor is from a different location.':'Location diversity was turned off.'}`;
 });
+// Show useful sample matches immediately after entry; users can change the request and search again.
+document.querySelector('#search-form').requestSubmit();
 
 function resetForm() {
   document.querySelector('#donor-form').reset(); document.querySelector('#edit-id').value='';

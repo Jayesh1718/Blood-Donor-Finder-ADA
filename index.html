@@ -27,8 +27,8 @@
       <form id="search-form" class="search-controls">
         <label>Required blood group<select id="required-group" required></select></label>
         <label>Donors needed<input id="needed-count" type="number" min="1" max="10" value="2" required /></label>
-        <label>Your area<input id="request-area" maxlength="50" placeholder="e.g. Rohini" /></label>
-        <label>Your PIN<input id="request-pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6-digit PIN" /></label>
+        <label>Your area<input id="request-area" maxlength="50" value="Rohini" placeholder="e.g. Rohini" /></label>
+        <label>Your PIN<input id="request-pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="110085" placeholder="6-digit PIN" /></label>
         <button class="primary-button" type="submit">Find matches <span aria-hidden="true">→</span></button>
       </form>
       <label class="check-row"><input id="diversify" type="checkbox" checked /> Prefer one donor per location when possible</label>

@@ -1,67 +1,70 @@
-# BloodLink: Blood Donor Finder & Management System
+# BloodLink — Delhi Blood Donor Finder
 
-An Analysis and Design of Algorithms classroom project. BloodLink keeps a small donor directory in the browser, filters available red-cell donors by compatibility, calculates shortest demo routes across a Delhi locality graph with Dijkstra’s algorithm, then demonstrates greedy selection with a backtracking fallback when the requested set would repeat a location.
+BloodLink is an educational Analysis and Design of Algorithms project. It demonstrates finding compatible donor records, ranking them by shortest route in a small Delhi locality graph, and selecting donors while avoiding repeated locations where possible.
 
-## Run the demo
+## Submission links
 
-1. Install Python 3 if needed.
-2. From this folder, run `python -m http.server 8000`.
-3. Open `http://localhost:8000` in a browser.
+- **Source code repository:** [Blood-Donor-Finder-ADA](https://github.com/anaysixty6/Blood-Donor-Finder-ADA)
+- **Live application:** [Open BloodLink](https://anaysixty6.github.io/Blood-Donor-Finder-ADA/)
 
-No package installation, account, server database, or network connection is required. The app uses fictional sample records and stores edits in the current browser's local storage. **Do not enter real donor contact details.**
+## Tech stack
 
-## Features
+- HTML, CSS, and JavaScript (ES modules)
+- Browser local storage for donor records
+- GitHub Pages for the live static site
+- No server, database, package installation, or API keys are required
 
-- Start with 30 fictional sample donors across five Delhi localities; add further donors through the registration form.
-- Filter by red-cell compatibility and availability.
-- Store a Delhi area/locality and optional six-digit PIN for each donor; enter a supported request area or PIN.
-- Automatically run Dijkstra from the requested locality over a weighted Delhi demo graph. Rank compatible available donors by shortest route distance, then registration order and donor ID.
-- Show each selected donor’s route and distance. Edge weights are illustrative teaching values, not live road distances or navigation guidance.
-- Try the first `k` ranked candidates greedily. When the one-donor-per-location constraint is violated, backtracking searches ranked alternatives.
-- Export the directory as CSV; reset to the bundled fictional sample data.
-- Display the selected donor set, selection strategy, search states explored, and elapsed time.
+## Run locally
 
-## Inputs and outputs
+1. Install Python 3.
+2. Download or clone this repository and open a terminal in the project folder.
+3. Start a local web server:
+   `python -m http.server 8000`
+4. Open [http://localhost:8000](http://localhost:8000).
 
-Inputs: donor ID, name, optional contact, blood group, Delhi area/locality, optional PIN, availability, requested area/PIN, recipient blood group, donor count, and location-diversity constraint. Registration order is assigned automatically and retained when a record is edited.
+You can also serve the folder with another local static web server. Opening `index.html` directly may prevent JavaScript modules from loading.
 
-Outputs: compatible available donors, ranked candidate list, selected donors, selection strategy, search states explored, and elapsed time.
+## Demo sign-in
+
+There is no real user account or authentication backend. Select **Continue as guest** to enter the app. The sign-in form is a classroom interface only; it does not verify or securely store credentials. Do not enter a real password.
+
+## What the project demonstrates
+
+- 30 fictional donor records across five Delhi localities, with illustrative PIN codes
+- ABO/Rh red-cell compatibility filtering and availability checks
+- Dijkstra's shortest-path algorithm over a weighted locality graph
+- Merge sort to rank candidates by route distance, registration order, and donor ID
+- Greedy donor selection, with backtracking when the location-diversity constraint makes the initial selection infeasible
+- Donor registration stored only in the current browser's local storage
+
+The graph distances are illustrative teaching values, not real road distances or navigation guidance. Sample donor details are fictional. This site is not for real donor coordination or clinical decisions.
 
 ## Algorithms and complexity
 
-Let `N` be the donor count, `M` the compatible and available candidates, and `k` the requested donor count.
+Let `N` be the number of donor records, `M` the number of compatible and available candidates, `V` the number of locality nodes, `E` the number of graph edges, and `k` the number of donors requested.
 
-| Stage | Method | Time | Extra space |
+| Stage | Method | Time complexity | Extra space |
 | --- | --- | --- | --- |
-| Compatibility and availability | Linear scan | `O(N)` | `O(M)` |
-| Dijkstra route distances | Binary min-heap + adjacency list | `O((V + E) log V)` | `O(V + E)` |
+| Compatibility and availability filtering | Linear scan | `O(N)` | `O(M)` |
+| Shortest locality routes | Dijkstra with binary min-heap and adjacency list | `O((V + E) log V)` | `O(V + E)` |
 | Candidate ranking | Merge sort | `O(M log M)` | `O(M)` buffers and `O(log M)` recursion stack |
-| Greedy attempt | Take the first `k` ranked candidates | `O(k)` | `O(k)` |
-| Constraint fallback | Depth-first combination search | `O(2^M)` worst case | `O(M)` recursion and selection state |
+| Initial selection | Greedy choice from ranked candidates | `O(k)` | `O(k)` |
+| Location-diversity fallback | Depth-first backtracking | `O(2^M)` worst case | `O(M)` |
 
-Here `V` is the number of locality nodes and `E` the number of graph edges. The main path is `O(N + (V + E) log V + M log M)`. In this classroom graph, `V` and `E` are small constants, so donor scanning and sorting dominate as the donor directory grows. Backtracking may dominate when it must explore many combinations. The program returns the first feasible combination in ranked order, so the fallback favors shorter routes while enforcing one donor per location.
+The usual path is `O(N + (V + E) log V + M log M)`. The backtracking fallback can take exponential time in the worst case.
 
-## Benchmark
+## Security and configuration
 
-Run `node benchmark.mjs` to recreate `results/benchmark.csv`. The script uses deterministic synthetic records and the same Dijkstra-based matching function, warms up each input, and reports the median per-query time across 15 runs of 50 queries each. The scenario makes the first 12 ranked candidates share Rohini to trigger fallback search. Timings depend on the computer and runtime; they are observations, not guarantees. The benchmark measures execution time only, not memory.
+This static classroom project has no secrets or environment variables, so an `.env.example` file is not needed. Donor changes remain in browser local storage and are not shared with other users or devices. Do not enter real personal, medical, or contact information. A production service would need secure authentication, protected storage, consent, audit logging, and clinical oversight.
 
-## Manual verification cases
+## Sample locality mapping
 
-- Empty directory or no compatible donor: show a clear no-match message.
-- Unavailable compatible donor: exclude it.
-- Duplicate donor ID: reject the record.
-- Top `k` donors from one location with alternatives elsewhere: invoke backtracking and return a location-diverse set.
-- Fewer than `k` distinct eligible locations: return a location-diverse partial set and state the shortfall.
-- Editing and deleting a donor: update counts and search results.
-- CSV export: include the current records and header row.
+| Area | Illustrative PIN |
+| --- | --- |
+| Rohini | 110085 |
+| Connaught Place | 110001 |
+| Laxmi Nagar | 110092 |
+| Dwarka Sector 6 | 110075 |
+| Lajpat Nagar | 110024 |
 
-## Scope and safety
-
-This is an educational matching demo, not a clinical service. The compatibility table represents simplified red-cell ABO/Rh rules. A qualified transfusion service must verify blood type, crossmatch, donation eligibility, component type, and all clinical decisions. The browser-only app is not a secure system for real personal data. A production version would need authenticated roles, secure storage, audit logs, consent, and hospital/blood-bank integration.
-
-## Course
-
-Analysis and Design of Algorithms (ADA)
-
-The sample Delhi locality/PIN pairs are Rohini (110085), Connaught Place (110001), Laxmi Nagar (110092), Dwarka Sector 6 (110075), and Lajpat Nagar (110024). Graph edge weights are invented for demonstrating shortest-path calculations and are not real route measurements. PINs are illustrative; verify any real PIN independently. PIN references: [India Post PIN Code List](https://www.indiapost.gov.in/rti/pincodelist).
-
+These are sample inputs for the demonstration. Route edge weights are invented for algorithm teaching and are not measured travel distances.

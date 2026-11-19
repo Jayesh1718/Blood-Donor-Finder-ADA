@@ -26,7 +26,10 @@ You can also serve the folder with another local static web server. Opening `ind
 
 ## Demo sign-in
 
-There is no real user account or authentication backend. Select **Continue as guest** to enter the app. The sign-in form is a classroom interface only; it does not verify or securely store credentials. Do not enter a real password.
+- **Email:** `anay@gmail.com`
+- **Password:** `123`
+
+These are classroom demo details for the sign-in screen. There is no real user account or authentication backend, and the form does not verify credentials. You can also select **Continue as guest**. Do not reuse this password for any real account.
 
 ## What the project demonstrates
 

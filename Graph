@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Benchmark Graph</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 32px;
+      font-family: system-ui, sans-serif;
+      background: #fff8f5;
+      color: #3d2020;
+    }
+
+    .card {
+      max-width: 900px;
+      margin: auto;
+      padding: 24px;
+      border: 1px solid #ead7d2;
+      border-radius: 16px;
+      background: white;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .axis {
+      stroke: #9b8581;
+      stroke-width: 1;
+    }
+
+    .grid {
+      stroke: #eee3df;
+      stroke-width: 1;
+    }
+
+    .line {
+      fill: none;
+      stroke: #9d2f2f;
+      stroke-width: 3;
+    }
+
+    .point {
+      fill: #9d2f2f;
+    }
+
+    .label {
+      fill: #5b4845;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Donor search benchmark</h1>
+    <p>Median search time versus number of donor records.</p>
+    <svg id="chart" viewBox="0 0 850 450" role="img"
+         aria-label="Line graph showing benchmark time as donor count increases"></svg>
+  </main>
+
+  <script type="module">
+    async function loadCsv() {
+      const response = await fetch('../results/benchmark.csv');
+      if (!response.ok) throw new Error('Could not load benchmark CSV');
+
+      const text = await response.text();
+      const lines = text.trim().split('\n').slice(1);
+
+      return lines.map(line => {
+        const [donors, median_ms] = line.match(/(?:^|,)(?:"([^"]*)"|([^,]*))/g)
+          .map(value => value.replace(/^,/, '').replace(/^"|"$/g, ''));
+
+        return {
+          donors: Number(donors),
+          ms: Number(median_ms)
+        };
+      });
+    }
+
+    function svgElement(name, attributes = {}) {
+      const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+      for (const [key, value] of Object.entries(attributes)) {
+        element.setAttribute(key, value);
+      }
+      return element;
+    }
+
+    async function draw() {
+      const data = await loadCsv();
+      const svg = document.querySelector('#chart');
+      const left = 70;
+      const right = 820;
+      const top = 30;
+      const bottom = 390;
+      const maxX = Math.max(...data.map(point => point.donors));
+      const maxY = Math.max(...data.map(point => point.ms)) * 1.15;
+
+      const x = value => left + (value / maxX) * (right - left);
+      const y = value => bottom - (value / maxY) * (bottom - top);
+
+      for (let i = 0; i <= 5; i += 1) {
+        const value = maxY * i / 5;
+        const yPosition = y(value);
+
+        svg.append(
+          svgElement('line', {
+            x1: left,
+            y1: yPosition,
+            x2: right,
+            y2: yPosition,
+            class: 'grid'
+          })
+        );
+
+        const label = svgElement('text', {
+          x: left - 12,
+          y: yPosition + 4,
+          'text-anchor': 'end',
+          class: 'label'
+        });
+        label.textContent = value.toFixed(2);
+        svg.append(label);
+      }
+
+      const line = data.map((point, index) =>
+        `${index === 0 ? 'M' : 'L'} ${x(point.donors)} ${y(point.ms)}`
+      ).join(' ');
+
+      svg.append(svgElement('path', { d: line, class: 'line' }));
+
+      for (const point of data) {
+        svg.append(svgElement('circle', {
+          cx: x(point.donors),
+          cy: y(point.ms),
+          r: 5,
+          class: 'point'
+        }));
+
+        const xLabel = svgElement('text', {
+          x: x(point.donors),
+          y: bottom + 28,
+          'text-anchor': 'middle',
+          class: 'label'
+        });
+        xLabel.textContent = point.donors.toLocaleString();
+        svg.append(xLabel);
+
+        const yLabel = svgElement('text', {
+          x: x(point.donors),
+          y: y(point.ms) - 12,
+          'text-anchor': 'middle',
+          class: 'label'
+        });
+        yLabel.textContent = `${point.ms.toFixed(4)} ms`;
+        svg.append(yLabel);
+      }
+
+      svg.append(
+        svgElement('line', { x1: left, y1: bottom, x2: right, y2: bottom, class: 'axis' }),
+        svgElement('line', { x1: left, y1: top, x2: left, y2: bottom, class: 'axis' })
+      );
+    }
+
+    draw().catch(error => {
+      document.querySelector('#chart').replaceChildren();
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        `<p style="color:#b91c1c">Error: ${error.message}</p>`
+      );
+    });
+  </script>
+</body>
+</html>
